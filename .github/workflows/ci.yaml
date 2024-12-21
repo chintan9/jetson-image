@@ -29,7 +29,6 @@ jobs:
           sudo apt update
           sudo apt install -y podman qemu-user-static pigz
           sudo systemctl start systemd-binfmt.service
-
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@main
         with:
@@ -53,12 +52,11 @@ jobs:
           mv jetson.img "jetson-nano-300_${{ matrix.ubuntu }}_${L4T32_BSP}.img"
           pigz "jetson-nano-300_${{ matrix.ubuntu }}_${L4T32_BSP}.img"
           ls -lht "jetson-nano-300_${{ matrix.ubuntu }}_${L4T32_BSP}.img.gz"
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: jetson-images
-          path: "jetson-nano-300_${{ matrix.ubuntu }}_${L4T32_BSP}.img.gz"
+          path: "jetson-nano-300_22.04_32.7.4.img.gz"
 
       - name: Release
         uses: softprops/action-gh-release@v2
