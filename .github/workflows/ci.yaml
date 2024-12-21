@@ -2,8 +2,7 @@ on:
   push:
     branches:
       - temp
-    tags:
-      - "*"
+
 name: Build
 env:
   L4T32_BSP: 32.7.4
@@ -58,9 +57,3 @@ jobs:
           name: jetson-images
           path: "jetson-nano-300_22.04_32.7.4.img.gz"
 
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          body: |
-            CHANGELOG.md
-          files: "jetson*"
