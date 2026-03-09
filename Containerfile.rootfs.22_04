@@ -6,7 +6,7 @@ LABEL org.opencontainers.image.authors="Badr @pythops"
 RUN echo "deb http://ports.ubuntu.com/ubuntu-ports/ focal main" >> /etc/apt/sources.list  && \
     apt update
 
-RUN rm /var/lib/dpkg/info/libc-bin.* && \ 
+RUN rm /var/lib/dpkg/info/libc-bin.* && \
     apt-get clean && \
     apt-get update && \
     apt-get install libc-bin
@@ -79,7 +79,8 @@ RUN apt install -y \
         e2fsprogs \
         mtd-utils \
         python-is-python3 \
-        git
+        git \
+        fwupd
 
 RUN wget -q https://github.com/pythops/tegratop/releases/latest/download/tegratop-linux-arm64 -O /usr/local/bin/tegratop && \
     chmod +x /usr/local/bin/tegratop

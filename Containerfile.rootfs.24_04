@@ -82,7 +82,8 @@ RUN apt install -y \
         mtd-utils \
         python-is-python3 \
         git \
-        gpgv1
+        gpgv1 \
+        fwupd
 
 
 RUN wget -q https://github.com/pythops/tegratop/releases/latest/download/tegratop-linux-arm64 -O /usr/local/bin/tegratop && \
