@@ -33,12 +33,10 @@ jobs:
           rm -rf jetson-nano-300-32.7.3.img
           ls -lht jetson-nano-300-32.7.3.img.lrz
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
+      - name: Upload Image Artifact
+        uses: actions/upload-artifact@v4
         with:
-          body: |
-            ubuntu 20.04
-            BSP 32.7.3
-          files: "jetson*"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: jetson-nano-image
+          path: jetson-nano-300-32.7.3.img.lrz
+          retention-days: 5
+
