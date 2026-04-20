@@ -8,6 +8,10 @@ on:
 env:
   DEBIAN_FRONTEND: noninteractive
   TZ: Etc/UTC
+  # Anchors defined here to be used in matrix below
+  L4T32_BSP: &L4T32 "32.7.4"
+  L4T35_BSP: &L4T35 "35.5.0"
+  L4T36_BSP: &L4T36 "36.3.0"
 
 jobs:
   build:
@@ -19,60 +23,51 @@ jobs:
             board: "jetson-nano"
             revision: "300"
             l4t_version: "32"
-            l4t_bsp: "32.7.4"
-
+            l4t_bsp: *L4T32
           - ubuntu: "22.04"
             board: "jetson-nano"
             revision: "200"
             l4t_version: "32"
-            l4t_bsp: "32.7.4"
-
+            l4t_bsp: *L4T32
           - ubuntu: "22.04"
             board: "jetson-nano"
             revision: "100"
             l4t_version: "32"
-            l4t_bsp: "32.7.4"
-
+            l4t_bsp: *L4T32
           - ubuntu: "22.04"
             board: "jetson-nano-2gb"
             l4t_version: "32"
-            l4t_bsp: "32.7.4"
-
+            l4t_bsp: *L4T32
           - ubuntu: "24.04"
             board: "jetson-orin-nano"
             device: "SD"
             l4t_version: "36"
-            l4t_bsp: "36.3.0"
-
+            l4t_bsp: *L4T36
           - ubuntu: "24.04"
             board: "jetson-orin-nano"
             device: "USB"
             l4t_version: "36"
-            l4t_bsp: "36.3.0"
-
+            l4t_bsp: *L4T36
           - ubuntu: "22.04"
             board: "jetson-agx-xavier"
             device: "SD"
             l4t_version: "35"
-            l4t_bsp: "35.5.0"
-
+            l4t_bsp: *L4T35
           - ubuntu: "22.04"
             board: "jetson-agx-xavier"
             device: "USB"
             l4t_version: "35"
-            l4t_bsp: "35.5.0"
-
+            l4t_bsp: *L4T35
           - ubuntu: "22.04"
             board: "jetson-xavier-nx"
             device: "SD"
             l4t_version: "35"
-            l4t_bsp: "35.5.0"
-
+            l4t_bsp: *L4T35
           - ubuntu: "22.04"
             board: "jetson-xavier-nx"
             device: "USB"
             l4t_version: "35"
-            l4t_bsp: "35.5.0"
+            l4t_bsp: *L4T35
 
     runs-on: ubuntu-latest
     permissions:
@@ -86,17 +81,16 @@ jobs:
       - name: Configure timezone
         run: |
           sudo ln -fs /usr/share/zoneinfo/$TZ /etc/localtime
-          echo $TZ | sudo tee /etc/timezone
+          echo "$TZ" | sudo tee /etc/timezone
           sudo dpkg-reconfigure --frontend noninteractive tzdata
 
       - name: Install dependencies
         run: |
-          sudo apt update
-          sudo apt install -y podman qemu-user-static pigz tzdata
+          sudo apt-get update
+          sudo apt-get install -y podman qemu-user-static pigz tzdata
           sudo systemctl start systemd-binfmt.service
 
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
+      - uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: true
           android: true
@@ -112,24 +106,20 @@ jobs:
 
       - name: Build image
         run: |
-          # Construct file name
           NAME="${{ matrix.board }}"
           [[ -n "${{ matrix.revision }}" ]] && NAME="${NAME}-${{ matrix.revision }}"
           [[ -n "${{ matrix.device }}" ]] && NAME="${NAME}_${{ matrix.device }}"
           FULL_NAME="${NAME}-${{ matrix.ubuntu }}-${{ matrix.l4t_bsp }}"
-
-          # Run build
+          
           just build-jetson-image \
             -b ${{ matrix.board }} \
             ${{ matrix.revision && format('-r {0}', matrix.revision) || '' }} \
             ${{ matrix.device && format('-d {0}', matrix.device) || '' }} \
             ${{ matrix.l4t_version && format('-l {0}', matrix.l4t_version) || '' }}
-
-          # Rename and compress
+          
           mv jetson.img "${FULL_NAME}.img"
           pigz "${FULL_NAME}.img"
           
-          # Set env for subsequent steps
           echo "IMAGE_FILE=${FULL_NAME}.img.gz" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=${FULL_NAME}" >> $GITHUB_ENV
 
