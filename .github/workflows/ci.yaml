@@ -99,29 +99,33 @@ jobs:
           large-packages: true
           docker-images: false
           swap-storage: true
-
+      
       - name: Create rootfs
         run: |
-          just build-jetson-rootfs ${{ matrix.ubuntu }}
+          # Force noninteractive inside the build script environment
+          DEBIAN_FRONTEND=noninteractive just build-jetson-rootfs 22.04
 
       - name: Build image
         run: |
-          NAME="${{ matrix.board }}"
-          [[ -n "${{ matrix.revision }}" ]] && NAME="${NAME}-${{ matrix.revision }}"
-          [[ -n "${{ matrix.device }}" ]] && NAME="${NAME}_${{ matrix.device }}"
-          FULL_NAME="${NAME}-${{ matrix.ubuntu }}-${{ matrix.l4t_bsp }}"
-          
-          just build-jetson-image \
-            -b ${{ matrix.board }} \
-            ${{ matrix.revision && format('-r {0}', matrix.revision) || '' }} \
-            ${{ matrix.device && format('-d {0}', matrix.device) || '' }} \
-            ${{ matrix.l4t_version && format('-l {0}', matrix.l4t_version) || '' }}
-          
+          BOARD="jetson-nano"
+          REVISION="300"
+          UBUNTU="22.04"
+          BSP="32.7.4"
+          L4T_VER="32"
+          FULL_NAME="${BOARD}-${REVISION}-${UBUNTU}-${BSP}"
+
+          # Force noninteractive inside the build script environment
+          DEBIAN_FRONTEND=noninteractive just build-jetson-image \
+            -b "$BOARD" \
+            -r "$REVISION" \
+            -l "$L4T_VER"
+
           mv jetson.img "${FULL_NAME}.img"
           pigz "${FULL_NAME}.img"
           
           echo "IMAGE_FILE=${FULL_NAME}.img.gz" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=${FULL_NAME}" >> $GITHUB_ENV
+
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
