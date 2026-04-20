@@ -95,7 +95,8 @@ jobs:
           sudo apt install -y podman qemu-user-static pigz tzdata
           sudo systemctl start systemd-binfmt.service
 
-      - uses: jlumbroso/free-disk-space@main
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: true
           android: true
@@ -111,24 +112,24 @@ jobs:
 
       - name: Build image
         run: |
-          # 1. Logic for naming within the shell session
+          # Construct file name
           NAME="${{ matrix.board }}"
           [[ -n "${{ matrix.revision }}" ]] && NAME="${NAME}-${{ matrix.revision }}"
           [[ -n "${{ matrix.device }}" ]] && NAME="${NAME}_${{ matrix.device }}"
           FULL_NAME="${NAME}-${{ matrix.ubuntu }}-${{ matrix.l4t_bsp }}"
 
-          # 2. Run the build command
+          # Run build
           just build-jetson-image \
             -b ${{ matrix.board }} \
             ${{ matrix.revision && format('-r {0}', matrix.revision) || '' }} \
             ${{ matrix.device && format('-d {0}', matrix.device) || '' }} \
             ${{ matrix.l4t_version && format('-l {0}', matrix.l4t_version) || '' }}
 
-          # 3. Rename and compress
+          # Rename and compress
           mv jetson.img "${FULL_NAME}.img"
           pigz "${FULL_NAME}.img"
           
-          # 4. Export to GITHUB_ENV for SUBSEQUENT steps
+          # Set env for subsequent steps
           echo "IMAGE_FILE=${FULL_NAME}.img.gz" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=${FULL_NAME}" >> $GITHUB_ENV
 
